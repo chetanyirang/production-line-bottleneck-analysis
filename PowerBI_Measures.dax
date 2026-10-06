@@ -1,0 +1,80 @@
+-- Import outputs/powerbi_dashboard_data.csv and name its model table Automotive.
+-- OEE source columns are ratios from 0 to 1. Format the OEE measures as Percentage.
+
+OEE =
+AVERAGE ( Automotive[oee_overall] )
+
+Average Availability =
+AVERAGE ( Automotive[oee_availability] )
+
+Average Performance =
+AVERAGE ( Automotive[oee_performance] )
+
+Average Quality =
+AVERAGE ( Automotive[oee_quality] )
+
+Average Takt (s) =
+AVERAGE ( Automotive[takt_time_seconds] )
+
+Average Cycle Time (s) =
+AVERAGE ( Automotive[actual_cycle_time_avg_seconds] )
+
+Average Bottleneck Cycle Time (s) =
+AVERAGE ( Automotive[bottleneck_cycle_time_seconds] )
+
+Average Bottleneck Gap (s) =
+AVERAGEX (
+    Automotive,
+    Automotive[bottleneck_cycle_time_seconds] - Automotive[takt_time_seconds]
+)
+
+Records Over Takt % =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( Automotive ),
+        FILTER (
+            Automotive,
+            Automotive[bottleneck_cycle_time_seconds] > Automotive[takt_time_seconds]
+        )
+    ),
+    COUNTROWS ( Automotive )
+)
+
+Actual Units =
+SUM ( Automotive[actual_production_quantity] )
+
+Good Units =
+SUM ( Automotive[good_units_produced] )
+
+Average Throughput (units/hour) =
+AVERAGE ( Automotive[throughput_rate_actual_uph] )
+
+Unplanned Downtime (min) =
+SUM ( Automotive[downtime_unplanned_minutes] )
+
+Average Unplanned Downtime / Record (min) =
+AVERAGE ( Automotive[downtime_unplanned_minutes] )
+
+Planned Downtime (min) =
+SUM ( Automotive[downtime_planned_minutes] )
+
+Downtime Events =
+SUM ( Automotive[downtime_event_count] )
+
+Positive Bottleneck Gap (s) =
+SUMX (
+    Automotive,
+    MAX (
+        0,
+        Automotive[bottleneck_cycle_time_seconds] - Automotive[takt_time_seconds]
+    )
+)
+
+Positive Gap Pareto Share % =
+DIVIDE (
+    [Positive Bottleneck Gap (s)],
+    CALCULATE (
+        [Positive Bottleneck Gap (s)],
+        ALLSELECTED ( Automotive[line_id] )
+    )
+)
